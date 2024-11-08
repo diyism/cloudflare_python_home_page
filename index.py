@@ -1,11 +1,4 @@
-from js import Response
-
-def on_fetch(request):
-    res=Response.new(my_tpl())
-    res.headers.set("Content-Type", "text/html; charset=utf-8")
-    return res
-
-def my_tpl():
+def python_home_page():
     kvml = """
 <!DOCTYPE html>
 <html lang="en">
@@ -16,14 +9,21 @@ def my_tpl():
 </head>
 <body>
     <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
-    <p>Welcome to my python cloudflare worker.</p>
+    <p>Welcome to my cloudflare python home page.</p>
 </body>
 </html>
     """
-    html = tpl.parse(kvml, context={"user_name": "jack"})
+    html = tpl.parse(kvml, context={"user_name": "jack1"})
     return html
 
-#================================python micro template:=================================
+#===========cloudflare request and response================
+from js import Response
+def on_fetch(request):
+    res=Response.new(python_home_page())
+    res.headers.set("Content-Type", "text/html; charset=utf-8")
+    return res
+
+#===========python micro template:=================================
 # Copyright (c) DIYism (email/msn/gtalk:kexianbin@diyism.com web:http://diyism.com)
 # Licensed under GPL (http://www.opensource.org/licenses/gpl-license.php) license.
 # Version: ke1r
