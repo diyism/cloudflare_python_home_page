@@ -1,5 +1,5 @@
 async def python_home_page():
-    kvml = """
+    kvml1 = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,16 +10,17 @@ async def python_home_page():
 <body>
     <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
     <p>Welcome to my cloudflare python home page.</p>
-    <:response = fetch("http://httpx.com"); write.append(await response.text()):>
+    <:response = await fetch("http://httpx.com") #;#write.append(await response.text()):>
 </body>
 </html>
     """
+    kvml="""hello a<:response = await fetch("http://httpx.com")#;#write.append(await response.text())#;#write.append('hello'):>"""
     user_name="jack"
     html = await tpl.parse(kvml, context=globals())
     return html
 
 #===========cloudflare request and response================
-from js import Response, fetch
+from js import Response, fetch, console
 import asyncio
 async def on_fetch(request):
     res = Response.new(await python_home_page())
@@ -27,8 +28,7 @@ async def on_fetch(request):
     return res
 
 #===========python micro template:=================================
-import re
-import collections.abc
+import re, collections.abc, textwrap
 class tpl:
     @staticmethod
     def re_sub_call(m):
@@ -73,18 +73,22 @@ class tpl:
 
         # Define exec environment and handle await as a string
         exec_env = context if context else {}
-        wrapped_code = f"""
-async def _temp_func(write):
+        kvml = textwrap.indent(kvml, ' ' * 4)
+        kvml = f"""
+#async def _temp_func(write):
+#{kvml}"""
+
+        kvml=f"""
+async def _temp_func():
+    write=[]
+    write.append('''hello a''')
     response = await fetch("http://httpx.com")
     write.append(await response.text())
     write.append('hello')
-        """
-        
-        # Execute in a local scope
-        exec_env['write'] = []
-        exec(wrapped_code, exec_env)
-        
-        # Await for the async function
-        await exec_env['_temp_func'](exec_env['write'])
-        kvml = ''.join([str(x) for x in exec_env['write']])
+    write.append('''''')
+    return write"""
+
+        exec(kvml, exec_env)
+        write=await exec_env['_temp_func']()
+        kvml = ''.join([str(x) for x in write])
         return kvml
