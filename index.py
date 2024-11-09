@@ -7,6 +7,8 @@ pyml = """
     <title>Hello World</title>
 </head>
 <body>
+<:user_name="jack123"
+:>
     <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
     <p>Welcome to my cloudflare python home page.</p>
 <:response = await fetch("http://httpx.com")
@@ -22,7 +24,6 @@ else:
 </body>
 </html>
 """
-user_name="jack"
 
 #===========cloudflare request and response================
 from js import Response, fetch, console
