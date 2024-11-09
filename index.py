@@ -7,7 +7,7 @@ pyml = """
     <title>Hello World</title>
 </head>
 <body>
-<:user_name="jack123"
+<:user_name="jack"
 :>
     <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
     <p>Welcome to my cloudflare python home page.</p>
@@ -16,10 +16,11 @@ html=await response.text()
 matches = re.search(r"<h2[^>]*>Your IP Address</h2>.*?<h1[^>]*>(.*?)</h1>", html, re.DOTALL)
 if matches:
     ip_address = matches.group(1).strip()
-    text_content = f"Cloudflare IP Address: {ip_address}"
+    text_content = f"Cloudflare IP Address: {ip_address}<br/>"
     write.append(text_content)
 else:
     write.append("IP Address not found.")
+write.append("Your IP Address:"+request.headers.get("cf-connecting-ip"))
 :>
 </body>
 </html>
@@ -29,7 +30,9 @@ else:
 from js import Response, fetch, console
 import asyncio
 async def on_fetch(request):
-    res = Response.new(await tpl.parse(globals()))
+    context = globals()
+    context['request'] = request
+    res = Response.new(await tpl.parse(context))
     res.headers.set("Content-Type", "text/html; charset=utf-8")
     return res
 
