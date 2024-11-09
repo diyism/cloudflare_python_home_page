@@ -16,6 +16,8 @@ You can modify the "pyml"(html+embeded python) in the pyml variable, the python 
         <title>Hello World</title>
     </head>
     <body>
+    <:user_name="jack123"
+    :>
         <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
         <p>Welcome to my cloudflare python home page.</p>
     <:response = await fetch("http://httpx.com")
@@ -31,6 +33,5 @@ You can modify the "pyml"(html+embeded python) in the pyml variable, the python 
     </body>
     </html>
     """
-    user_name="jack"
 
 ![](./python_home_page.png)
