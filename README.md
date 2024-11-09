@@ -5,7 +5,7 @@ Workers & Pages > Create > Start from a template/Python Hello World > Edit Code
 
 copy the code of index.py into it, and click "Deploy"
 
-You can modify the "pyml"(html+embeded python) in the pyml variable, the python code in the "<: ... :>"(similar to "<?php ... ?>" in php):
+You can modify the "pyml"(html+embeded python) in the pyml variable, the python code in the "<: ... :>"(similar to "<\?php ... \?>" in php):
 
     pyml = """
     <!DOCTYPE html>
