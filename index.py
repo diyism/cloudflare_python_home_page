@@ -1,5 +1,4 @@
-def python_home_page():
-    kvml = """
+pyml = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,27 +9,31 @@ def python_home_page():
 <body>
     <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
     <p>Welcome to my cloudflare python home page.</p>
+<:response = await fetch("http://httpx.com")
+html=await response.text()
+matches = re.search(r"<h2[^>]*>Your IP Address</h2>.*?<h1[^>]*>(.*?)</h1>", html, re.DOTALL)
+if matches:
+    ip_address = matches.group(1).strip()
+    text_content = f"Cloudflare IP Address: {ip_address}"
+    write.append(text_content)
+else:
+    write.append("IP Address not found.")
+:>
 </body>
 </html>
-    """
-    html = tpl.parse(kvml, context={"user_name": "jack1"})
-    return html
+"""
+user_name="jack"
 
 #===========cloudflare request and response================
-from js import Response
-def on_fetch(request):
-    res=Response.new(python_home_page())
+from js import Response, fetch, console
+import asyncio
+async def on_fetch(request):
+    res = Response.new(await tpl.parse(globals()))
     res.headers.set("Content-Type", "text/html; charset=utf-8")
     return res
 
 #===========python micro template:=================================
-# Copyright (c) DIYism (email/msn/gtalk:kexianbin@diyism.com web:http://diyism.com)
-# Licensed under GPL (http://www.opensource.org/licenses/gpl-license.php) license.
-# Version: ke1r
-# Document: https://github.com/diyism/python-micro-template/
-import re
-import collections.abc
-
+import re, collections.abc, textwrap
 class tpl:
     @staticmethod
     def re_sub_call(m):
@@ -57,21 +60,30 @@ class tpl:
                 yield el
 
     @staticmethod
-    def parse(kvml, context=None):
-        kvml = re.sub(r'<:', '\r', kvml)
-        kvml = re.sub(r'(?:^|:>)[^\r]*', tpl.re_sub_call, kvml)
-        kvml = re.sub(r'(?:\r)=(.*?)(?::>)', r"\rwrite.append(\1):>", kvml)
-        kvml = re.sub(r'\r', "''')#;#", kvml)
-        kvml = re.sub(r':>', "#;#write.append('''", kvml)
-        kvml = "write=[]\nwrite.append('''" + kvml + "''')"
-        kvml = re.sub(r"\\", r"\\\\", kvml)
-        kvml = re.sub("'", r"\'", kvml)
-        kvml = re.sub(r"#{#", "''',['''", kvml)
-        kvml = re.sub(r"#}#", "'''],'''", kvml)
-        kvml = eval("['''" + kvml + "''']")
-        kvml = tpl.recursive_indent(kvml, 0)
-        kvml = list(tpl.flatten(kvml))
-        exec_env = context if context else {}
-        exec(''.join(kvml), exec_env)
-        kvml = ''.join([str(x) for x in exec_env['write']])
-        return kvml
+    async def parse(context):
+        #return context['pyml']
+        pyml=context['pyml']
+        pyml = re.sub(r'<:', '\r', pyml)
+        pyml = re.sub(r'(?:^|:>)[^\r]*', tpl.re_sub_call, pyml)
+        pyml = re.sub(r'(?:\r)=(.*?)(?::>)', r"\rwrite.append(\1):>", pyml)
+        pyml = re.sub(r'\r', "''')#;#", pyml)
+        pyml = re.sub(r':>', "#;#write.append('''", pyml)
+        pyml = "write=[]\nwrite.append('''" + pyml + "''')\nreturn write"
+        pyml = re.sub(r"\\", r"\\\\", pyml)
+        pyml = re.sub("'", r"\'", pyml)
+        pyml = re.sub(r"#{#", "''',['''", pyml)
+        pyml = re.sub(r"#}#", "'''],'''", pyml)
+        pyml = eval("['''" + pyml + "''']")
+        pyml = tpl.recursive_indent(pyml, 0)
+        pyml = list(tpl.flatten(pyml))
+        pyml = ''.join(pyml)
+
+        pyml = textwrap.indent(pyml, ' ' * 4)
+        pyml = f"""
+async def _temp_func():
+{pyml}"""
+
+        exec(pyml, context)
+        write=await context['_temp_func']()
+        pyml = ''.join([str(x) for x in write])
+        return pyml
