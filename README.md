@@ -16,7 +16,7 @@ You can modify the "pyml"(html+embeded python) in the pyml variable, the python 
         <title>Hello World</title>
     </head>
     <body>
-    <:user_name="jack123"
+    <:user_name="jack"
     :>
         <h1>Hello, <:for i in range(2):#{#:><:=user_name:>,<:#}#:>!</h1>
         <p>Welcome to my cloudflare python home page.</p>
@@ -25,10 +25,11 @@ You can modify the "pyml"(html+embeded python) in the pyml variable, the python 
     matches = re.search(r"<h2[^>]*>Your IP Address</h2>.*?<h1[^>]*>(.*?)</h1>", html, re.DOTALL)
     if matches:
         ip_address = matches.group(1).strip()
-        text_content = f"Cloudflare IP Address: {ip_address}"
+        text_content = f"Cloudflare IP Address: {ip_address}<br/>"
         write.append(text_content)
     else:
         write.append("IP Address not found.")
+    write.append("Your IP Address:"+request.headers.get("cf-connecting-ip"))
     :>
     </body>
     </html>
